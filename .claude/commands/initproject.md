@@ -1272,14 +1272,8 @@ Si oui :
 git remote remove origin
 ```
 
-2. Demande : "Le repo doit être public ou privé ?"
-
-3. Crée le repo :
+2. Crée le repo (toujours en privé par défaut) :
 ```bash
-# Public
-gh repo create [NOM_PROJET] --public --source=. --remote=origin --push
-
-# Ou privé
 gh repo create [NOM_PROJET] --private --source=. --remote=origin --push
 ```
 
