@@ -9,16 +9,16 @@ Tu es un assistant qui aide à créer un nouveau projet web moderne. Suis ce gui
 **AVANT TOUTE CHOSE**, vérifie l'état du projet en exécutant ces vérifications :
 
 1. Vérifie si `package.json` existe (projet créé)
-2. Vérifie si `.mcp.json` existe (Supabase MCP configuré)
-3. Vérifie si `.env` existe (clés Supabase configurées)
-4. Vérifie si `src/services/supabase.ts` existe (client Supabase créé)
-5. Vérifie si `CLAUDE.md` existe (conventions générées)
+2. Vérifie si `.env` existe (clés Supabase configurées)
+3. Vérifie si `src/services/supabase.ts` existe (client Supabase créé)
+4. Vérifie si `CLAUDE.md` existe (conventions générées)
+5. Vérifie si le MCP Supabase est disponible (essaie d'utiliser un outil MCP Supabase)
 
 **Règles de reprise :**
 
 - Si **rien n'existe** → Commence à la PHASE 1
-- Si **package.json existe mais pas .mcp.json** → Reprends à la PHASE 3 (config Supabase)
-- Si **.mcp.json existe mais pas de table _quickstart_test** → Reprends à la PHASE 4 (test validation)
+- Si **package.json existe mais pas .env** → Reprends à la PHASE 3 (config Supabase)
+- Si **.env existe et MCP disponible mais pas de table _quickstart_test** → Reprends à la PHASE 4 (test validation)
 - Si **CLAUDE.md existe** → Tout est déjà configuré, dis à l'utilisateur que le projet est prêt
 
 **EXÉCUTE CES VÉRIFICATIONS MAINTENANT** avant de continuer. Utilise les outils Glob ou Read pour vérifier l'existence des fichiers.
@@ -575,7 +575,7 @@ Demande à l'utilisateur : "Est-ce que tu as déjà créé ton projet Supabase ?
 
 Dis à l'utilisateur :
 ```
-J'ai besoin de 3 informations de ton projet Supabase :
+J'ai besoin de 2 informations de ton projet Supabase :
 
 1. URL du projet
    → Settings > Data API
@@ -585,15 +585,10 @@ J'ai besoin de 3 informations de ton projet Supabase :
    → API Keys > Legacy
    → Copie la clé "anon" (commence par eyJ...)
 
-3. Access Token (pour le MCP)
-   → Va sur https://supabase.com/dashboard/account/tokens
-   → Clique "Generate new token", donne un nom
-   → Copie le token (commence par sbp_...)
-
-Colle-moi ces 3 valeurs !
+Colle-moi ces 2 valeurs !
 ```
 
-Attends que l'utilisateur fournisse les 3 valeurs.
+Attends que l'utilisateur fournisse les 2 valeurs.
 
 ### Étape 3.3 : Création du .env
 
@@ -666,40 +661,21 @@ export function useAuth() {
 
 ### Étape 3.6 : Configuration MCP Supabase
 
-Crée le fichier `.mcp.json` à la racine :
-
-```json
-{
-  "mcpServers": {
-    "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--access-token",
-        "ACCESS_TOKEN_ICI"
-      ]
-    }
-  }
-}
-```
-
-Remplace `ACCESS_TOKEN_ICI` par le token récupéré à l'étape 3.2 (commence par `sbp_...`).
-
-### Étape 3.7 : Rechargement de Claude Code pour activer le MCP
-
-**IMPORTANT** : Le MCP Supabase est chargé au démarrage de Claude Code. Comme on vient de créer le `.mcp.json`, il faut relancer Claude Code.
-
 Dis à l'utilisateur :
 ```
-Le fichier .mcp.json est créé, mais Claude Code doit être relancé pour charger le MCP Supabase.
+Maintenant on va connecter le MCP Supabase à Claude Code.
 
 Fais ceci :
 1. Quitte Claude Code avec : /exit
-2. Relance Claude Code avec : claude --dangerously-skip-permissions
-3. Tape : /mcp
-4. Valide l'authentification Supabase quand on te le demande
-5. Tape /initproject pour reprendre
+2. Dans ton terminal, exécute cette commande :
+
+   claude mcp add --transport http supabase https://mcp.supabase.com/mcp
+
+3. Relance Claude Code avec : claude --dangerously-skip-permissions
+4. Tape : /mcp
+5. Valide l'authentification Supabase dans le navigateur quand on te le demande
+   (une fenêtre va s'ouvrir automatiquement pour te connecter à Supabase)
+6. Tape /initproject pour reprendre
 
 Je détecterai automatiquement que la Phase 3 est terminée et je passerai à la Phase 4 (test de validation).
 ```
@@ -715,9 +691,9 @@ Je détecterai automatiquement que la Phase 3 est terminée et je passerai à la
 ### Étape 4.0 : Détection de reprise
 
 Au démarrage, vérifie si :
-- Le fichier `.mcp.json` existe
 - Le fichier `.env` existe avec les clés Supabase
 - Le fichier `src/services/supabase.ts` existe
+- Le MCP Supabase est disponible (essaie d'utiliser un outil MCP)
 
 Si OUI → La Phase 3 est terminée, passe directement à l'étape 4.1
 
@@ -742,17 +718,17 @@ Dis à l'utilisateur :
 ```
 Le MCP Supabase n'est pas accessible. Vérifions :
 
-1. Le fichier .mcp.json existe-t-il ? ✓/✗
-2. Les clés sont-elles correctes dans .mcp.json ?
-3. As-tu bien relancé Claude Code après la création du .mcp.json ?
+1. As-tu bien exécuté la commande ?
+   → claude mcp add --transport http supabase https://mcp.supabase.com/mcp
+2. As-tu bien relancé Claude Code après ?
+3. As-tu validé l'authentification Supabase dans le navigateur via /mcp ?
 
-Si tu viens de créer le .mcp.json :
+Si ce n'est pas encore fait :
 → Quitte Claude Code : /exit
+→ Exécute : claude mcp add --transport http supabase https://mcp.supabase.com/mcp
 → Relance : claude --dangerously-skip-permissions
-→ Tape : /mcp et valide l'authentification Supabase
+→ Tape : /mcp et valide l'authentification Supabase dans le navigateur
 → Tape : /initproject
-
-Si le problème persiste, vérifie que la service_role key est correcte dans .mcp.json
 ```
 
 **STOP** - Attends que l'utilisateur corrige et relance.
@@ -1300,8 +1276,9 @@ Affiche :
 📁 Fichiers importants :
    - CLAUDE.md           → Conventions (SEO, i18n, migrations, etc.)
    - .env                → Variables d'environnement
-   - .mcp.json           → Configuration MCP Supabase
    - supabase/migrations → Fichiers de migration SQL
+
+🔌 MCP Supabase connecté via : claude mcp add
 
 🌍 Langues configurées : FR, EN, DE, LU
 
