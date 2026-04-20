@@ -1,0 +1,11 @@
+{
+  "common": {
+    "loading": "Lueden...",
+    "error": "E Feeler ass opgetrueden",
+    "save": "Späicheren",
+    "cancel": "Ofbriechen",
+    "delete": "Läschen",
+    "edit": "Änneren",
+    "back": "Zréck"
+  }
+}
